@@ -1,0 +1,28 @@
+#* 
+input paramaters:[
+     prefixMap(necessary) as {"xsd", "http://www.w3.org/2001/XMLSchema#"}
+	 graph(necessary)
+     appUri, appValue, appPrefix, orgUri(necessary)
+     appDburi, appDbtermuri(necessary)
+     appTermUri, appTermPrefix(necessary)
+     profileMap(necessary)       {profileUri, [profileType, profileValue]}
+]
+*#
+
+#foreach($prefix in $prefixMap.entrySet())
+PREFIX ${prefix.key}: <${prefix.value}> 
+#end
+
+DROP GRAPH <$!graph> ;
+INSERT DATA{ 
+	GRAPH <$!graph> {
+	 <$!appUri> a term:APP ; term:uri <$!appDburi> ; term:app "$!appValue"^^xsd:string ; term:prefix "$!appPrefix"^^xsd:string ; term:partOf <$!orgUri> . 
+	 #foreach($profileUri in ${profileMap.keySet()})
+	 <$!appUri> term:has <$!profileUri> . 
+	 #end 
+	 <$!appTermUri> a term:TERM ; term:uri <$!appDbtermuri> ; term:prefix "$!appTermPrefix"^^xsd:string .
+	 #foreach($profileUri in ${profileMap.keySet()})
+	 <$!profileUri> a <${profileMap.get($!profileUri).get(0)}> ; term:hasValue "${profileMap.get($!profileUri).get(1)}"^^xsd:string . 
+	 #end 
+	} 
+}

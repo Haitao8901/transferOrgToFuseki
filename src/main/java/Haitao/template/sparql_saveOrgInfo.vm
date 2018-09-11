@@ -1,0 +1,28 @@
+#* 
+input paramaters:[
+	 prefixMap(necessary)        {"xsd", "http://www.w3.org/2001/XMLSchema#"}
+	 graph(necessary)
+     orgUri, orgValue(necessary)
+     orgDburi, orgDbtermuri(necessary);
+     orgTermUri, orgTermPrefix(necessary)
+     profileMap(necessary)       {profileUri, [profileType, profileValue]}
+]
+*#
+
+#foreach($prefix in $prefixMap.entrySet())
+PREFIX ${prefix.key}: <${prefix.value}> 
+#end
+
+DROP GRAPH <$!graph> ;
+INSERT DATA{ 
+	GRAPH <$!graph> {
+	 <$!orgUri> a term:ORG ; term:uri <$!orgDburi> ; term:org "$!orgValue"^^xsd:string ; term:prefix "$!orgValue"^^xsd:string . 
+	 #foreach($profileUri in ${profileMap.keySet()})
+	 <$!orgUri> term:has <$!profileUri> . 
+	 #end 
+	 <$!orgTermUri> a term:TERM ; term:uri <$!orgDbtermuri> ; term:prefix "$!orgTermPrefix"^^xsd:string .
+	 #foreach($profileUri in ${profileMap.keySet()})
+	 <$!profileUri> a <${profileMap.get($!profileUri).get(0)}> ; term:hasValue "${profileMap.get($!profileUri).get(1)}"^^xsd:string . 
+	 #end 
+	} 
+}
